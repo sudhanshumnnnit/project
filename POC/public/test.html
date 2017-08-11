@@ -1,0 +1,60 @@
+<!DOCTYPE html>  
+<html ng-app="interceptorApp">  
+  
+<head>  
+    <script src="https://code.angularjs.org/1.4.0-beta.6/angular.js"></script>  
+    <script>  
+var testInterceptor = function ($q)  
+{  
+    console.log("called first");
+    return {  
+        request: function (config)  
+        {  
+            console.log('request started...');  
+        },  
+        requestError: function (rejection)  
+        {  
+            console.log(rejection);  
+            // Contains the data about the error on the request and return the promise rejection.    
+            return $q.reject(rejection);  
+        },  
+        response: function (result)  
+        {  
+            console.log('data for ' + result.data.name + ' received');  
+            //If some manipulation of result is required before assigning to scope.    
+            result["testKey"] = 'testValue';  
+            console.log('request completed');  
+            return result;  
+        },  
+        responseError: function (response)  
+        {  
+            console.log('response error started...');  
+            //Check different response status and do the necessary actions 400, 401, 403,401, or 500 eror     
+            return $q.reject(response);  
+        }  
+    }  
+}  
+interceptorApp = angular.module('interceptorApp', []).config(function ($httpProvider)  
+{  
+    $httpProvider.interceptors.push(testInterceptor);  
+});  
+interceptorApp.controller('interceptorCtrl', ["$scope", "$http",  
+    function ($scope, $http)  
+    {  
+        $scope.getData = function ()  
+        {  
+            var data = $http.get('http://localhost:52332/testwebapi').  
+            success(function (data, status, headers, config)  
+            {  
+                $scope.Name = data.name;  
+            });  
+        };  
+    }  
+])  
+    </script>  
+</head>  
+  
+<body ng-controller="interceptorCtrl"> {{ Name }}  
+    <input type="button" value="Click To Test Interceptors" ng-click="getData()" /> </body>  
+  
+</html> 
